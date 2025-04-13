@@ -3,9 +3,11 @@ import './App.css'
 import './components/SendBox/SendBox'
 import ChatBox from './components/ChatBox/ChatBox'
 import ChatList from './components/ChatList/ChatList'
+import { getAllUsers, createUser, sendMessage, getChatList } from  '../firebase.config.mjs'
 
 function App() {
   const [count, setCount] = useState(0)
+  // const [chatList, setChatList] = useState()
 
   const chatList = [
     {chatName: 'Nistha', lastMessage: 'Hi dear!', userIcon: false, sent: false},
@@ -20,6 +22,13 @@ function App() {
     {text: 'Where tf are you bitch?', send: true},
     {text: 'Hi dear!', send: false},
   ]
+   const fn = async () => {
+    console.log(await getChatList('Nistha'));
+    // createUser('Nistha')
+    // sendMessage('Mikel', 'Nistha', 'What are you doing?')
+   }
+   fn();
+  
 
   return (
     <>
