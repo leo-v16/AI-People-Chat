@@ -1,13 +1,11 @@
 import ChatPreview from "../ChatPreview/ChatPreview"
 
-function ChatList({chatList}) {
-    const chatListView = chatList.map((chat) => {
+function ChatList({chatList, chatSelector}) {
+    const chatListView = chatList.map((chat, idx) => {
         return( 
-        <>
-        <div style={{padding: '5px'}}>
+        <div  key={idx} style={{padding: '5px'}} onClick={() => chatSelector(chat.chatName)}>
             <ChatPreview chatName={chat.chatName} lastMessage={chat.lastMessage} userIcon={chat.userIcon} sent={chat.sent}/>
         </div>
-        </>
         )
     });
 

@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, set, update, push } from "firebase/database";
+import { getDatabase, ref, get, set, update, push, onValue } from "firebase/database";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,7 +19,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-
+const onUpdate = async (query) => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = onValue(query, (snapshot) => {
+            try {
+                if (snapshot.exists()) {
+                    // If you need to handle data, you can process it here
+                    const data = snapshot.val();
+                    resolve(data); // Resolve the promise with the data
+                    unsubscribe(); // Clean up the listener once the data is received
+                } else {
+                    reject("No data found");
+                }
+            } catch (error) {
+                console.log(error);
+                reject(error); // Reject the promise on error
+            }
+        }, (error) => {
+            reject(error); // Reject on Firebase listener error
+        });
+    });
+};
 
 
 export const getAllUsers = async () => {
@@ -75,4 +95,32 @@ export const sendMessage = async (from_user, to_user, message) => {
         console.log(error);
     }
     console.log('Could Not Send Message');
+}
+
+export const getMessages = async (from_user, to_user) => {
+    try {
+        const messageListRef = ref(database, `users/${from_user}/chatList/${to_user}`)
+        const messageObj = await (await get(messageListRef))
+        if (messageObj.exists()) {
+            const messageObjList = Object.entries(messageObj.val()).map(([key, value]) => ({id: key, ...value})).sort((m1, m2) => m1.time - m2.time)
+            return messageObjList
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    return []
+}
+
+export const updateMessages = async (from_user, to_user) => {
+    try {
+        const messageListRef = ref(database, `users/${from_user}/chatList/${to_user}`)
+        const messageObj = await (await onUpdate(messageListRef))
+        if (messageObj.exists()) {
+            const messageObjList = Object.entries(messageObj.val()).map(([key, value]) => ({id: key, ...value})).sort((m1, m2) => m1.time - m2.time)
+            return messageObjList
+        }
+    } catch (error) {
+        console.log(error);
+    }
+    return []
 }

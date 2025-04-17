@@ -1,15 +1,13 @@
 import SendBox from "../SendBox/SendBox"
 import MessageBubble from "../MessageBubble/MessageBubble"
 
-function ChatBox({name, messageList}) {
+function ChatBox({name, messageList, sendMessageHandler}) {
 
-    const messageListView = messageList.map( (msg) => {
+    const messageListView = messageList.map( (msg, idx) => {
         return (
-            <>
-                <div>
-                    <MessageBubble text={msg.text} send={msg.send} />
-                </div>
-            </>
+            <div key={idx} >
+                    <MessageBubble text={msg.text} sent={msg.sent} />
+            </div>
         )
     })
 
@@ -22,10 +20,9 @@ function ChatBox({name, messageList}) {
             <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '10px'}}>
                 <div>
                     {messageListView}
-                    {/* <MessageBubble text={'Hello'} send={false} /> */}
                 </div>
                 <div style={{marginTop: 'auto'}}>
-                    <SendBox/>
+                    <SendBox sendMessageHandler={sendMessageHandler}/>
                 </div>
             </div>
         </div>
