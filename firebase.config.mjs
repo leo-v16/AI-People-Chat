@@ -19,28 +19,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-const onUpdate = async (query) => {
-    return new Promise((resolve, reject) => {
-        const unsubscribe = onValue(query, (snapshot) => {
-            try {
-                if (snapshot.exists()) {
-                    // If you need to handle data, you can process it here
-                    const data = snapshot.val();
-                    resolve(data); // Resolve the promise with the data
-                    unsubscribe(); // Clean up the listener once the data is received
-                } else {
-                    reject("No data found");
-                }
-            } catch (error) {
-                console.log(error);
-                reject(error); // Reject the promise on error
-            }
-        }, (error) => {
-            reject(error); // Reject on Firebase listener error
-        });
-    });
-};
-
 
 export const getAllUsers = async () => {
     try {
@@ -111,16 +89,19 @@ export const getMessages = async (from_user, to_user) => {
     return []
 }
 
-export const updateMessages = async (from_user, to_user) => {
+
+export const onMessage = async (from_user, to_user, method) => {
     try {
         const messageListRef = ref(database, `users/${from_user}/chatList/${to_user}`)
-        const messageObj = await (await onUpdate(messageListRef))
-        if (messageObj.exists()) {
-            const messageObjList = Object.entries(messageObj.val()).map(([key, value]) => ({id: key, ...value})).sort((m1, m2) => m1.time - m2.time)
-            return messageObjList
-        }
+        onValue(messageListRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const messageObjList = Object.entries(snapshot.val()).map(([key, value]) => ({id: key, ...value})).sort((m1, m2) => m1.time - m2.time)
+                method(messageObjList)
+            } else {
+                method([])
+            }
+        })
     } catch (error) {
         console.log(error);
     }
-    return []
-}
+} 

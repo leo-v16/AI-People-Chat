@@ -3,7 +3,7 @@ import './App.css'
 import './components/SendBox/SendBox'
 import ChatBox from './components/ChatBox/ChatBox'
 import ChatList from './components/ChatList/ChatList'
-import { getAllUsers, createUser, sendMessage, getChatList, getMessages, updateMessages } from  '../firebase.config.mjs'
+import { getAllUsers, createUser, sendMessage, getChatList, getMessages, onMessage } from  '../firebase.config.mjs'
 
 const $USER = 'Nistha'
 
@@ -24,13 +24,11 @@ function App() {
 
   const sendMessageHandler = async (message) => {
     sendMessage($USER, currentChat, message)
+    onMessage($USER, currentChat, setCurrentMessageList)
   }
   
   useEffect(() => {
     updateChatList()
-    if (updateMessages($USER, currentChat) != []) {
-      console.log('somehing happened');
-    }
   }, []) 
 
   // const chatList = [
