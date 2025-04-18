@@ -8,13 +8,12 @@ import { getAllUsers, createUser, sendMessage, getChatList, getMessages, onMessa
 const $USER = 'Nistha'
 
 function App() {
-  const [count, setCount] = useState(0)
   const [chatList, setChatList] = useState([])
   const [currentChat, setCurrentChat] = useState(null)
   const [currentMessageList, setCurrentMessageList] = useState([]);
 
   const updateChatList = async () => {
-    setChatList((await getChatList($USER)).map(chat => {return {chatName: chat} }))
+    setChatList((await getChatList($USER)).map(chat => {return {chatName: chat.chatName, lastMessage: chat.lastMessage, sent: chat.sent} }))
   }
 
   const updateCurrentChat = async (chatName) => {
@@ -29,6 +28,7 @@ function App() {
   
   useEffect(() => {
     updateChatList()
+    
   }, []) 
 
   // const chatList = [

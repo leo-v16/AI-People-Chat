@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, set, update, push, onValue } from "firebase/database";
+import { getDatabase, ref, get, set, update, push, onValue, off } from "firebase/database";
+import { sendAdam } from "./bots.config.mjs"
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -18,7 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-
+1
 
 export const getAllUsers = async () => {
     try {
@@ -38,7 +39,13 @@ export const getChatList = async (username) => {
         const targetUserRef = ref(database, `users/${username}/chatList`)
         const chatList = await get(targetUserRef)
         if (chatList.exists()) {
-            return Object.keys(chatList.val());
+            const chatListArray = Object.entries(chatList.val())
+            const chatListObj = chatListArray.map((chat) => ({
+                chatName: chat[0], 
+                lastMessage: (chat[1])? Object.entries(chat[1]).at(-1)[1].text : '',
+                sent: (chat[1])? Object.entries(chat[1]).at(-1)[1].sent : null,
+            }))
+            return chatListObj;
         }
     } catch (error) {
         console.log(error);
@@ -90,17 +97,32 @@ export const getMessages = async (from_user, to_user) => {
 }
 
 
-export const onMessage = async (from_user, to_user, method) => {
+export const onMessage = (from_user, to_user, method) => {
     try {
         const messageListRef = ref(database, `users/${from_user}/chatList/${to_user}`)
-        onValue(messageListRef, (snapshot) => {
+        const routine = (snapshot) => {
             if (snapshot.exists()) {
                 const messageObjList = Object.entries(snapshot.val()).map(([key, value]) => ({id: key, ...value})).sort((m1, m2) => m1.time - m2.time)
+                const lastMessage = messageObjList.at(-1)
+                if (to_user == 'Adam' && lastMessage.sent == true) {
+                    const history = messageObjList.map((msg) => ({role: (msg.sent)? "user" : "model", parts: [{text: msg.text}]}))
+                    history.pop();
+                    (async () => {
+                        if (lastMessage.sent == true) {
+                            console.log('API-TRIGERRED');
+                            const response = await sendAdam(history, lastMessage.text)
+                            sendMessage(to_user, from_user, response)
+                            setTimeout(()=>{off(messageListRef, 'value', routine)}, 1000); // due to async or somwthing, onValue lister was stacking, so one is removed while other is added to make it constant, I don't understand it well but if i do I will it later
+                            console.log(lastMessage);
+                        }
+                    })()
+                }
                 method(messageObjList)
             } else {
                 method([])
             }
-        })
+        }
+        onValue(messageListRef, routine)
     } catch (error) {
         console.log(error);
     }
