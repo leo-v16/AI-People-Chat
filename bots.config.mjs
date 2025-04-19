@@ -1,13 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
-import { $ADAM } from './model.character.config.mjs'
+import { $ADAM, $NATASHA } from './model.character.config.mjs'
 const AI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 
-const adamConifg = async (history) => {
+const botConifg = async (history) => {
     const adam = AI.chats.create({
         model: "gemini-2.0-flash",
         config: {
-            maxOutputTokens: 50,
+            maxOutputTokens: 100,
             temperature: 0.1,
             systemInstruction:{ parts: [{ text: $ADAM }],}
         },
@@ -17,7 +17,7 @@ const adamConifg = async (history) => {
 }
 
 export const sendAdam = async (history, message) => {
-    const chat = await adamConifg(history)
+    const chat = await botConifg(history)
     const response = await chat.sendMessage({
         message: message
     })

@@ -3,9 +3,9 @@ import './App.css'
 import './components/SendBox/SendBox'
 import ChatBox from './components/ChatBox/ChatBox'
 import ChatList from './components/ChatList/ChatList'
-import { getAllUsers, createUser, sendMessage, getChatList, getMessages, onMessage } from  '../firebase.config.mjs'
+import { getAllUsers, createUser, sendMessage, getChatList, getMessages, onMessage, clearChat } from  '../firebase.config.mjs'
 
-const $USER = 'Nistha'
+const $USER = 'Mikel'
 
 function App() {
   const [chatList, setChatList] = useState([])
@@ -24,6 +24,12 @@ function App() {
   const sendMessageHandler = async (message) => {
     sendMessage($USER, currentChat, message)
     onMessage($USER, currentChat, setCurrentMessageList)
+  }
+
+  const clearTargetChat = async () => {
+    clearChat($USER, currentChat)
+    updateCurrentChat(currentChat)
+    updateChatList()
   }
   
   useEffect(() => {
@@ -52,7 +58,7 @@ function App() {
         <ChatList chatList={chatList} chatSelector={updateCurrentChat}/>
       </div>
       <div style={{width: '70%', height: '100%'}}>
-        <ChatBox name={currentChat}  messageList={currentMessageList} sendMessageHandler={sendMessageHandler}/>
+        <ChatBox name={currentChat}  messageList={currentMessageList} sendMessageHandler={sendMessageHandler} clearTargetChat={clearTargetChat}/>
       </div>
     </div>
     </>

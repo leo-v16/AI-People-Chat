@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, set, update, push, onValue, off } from "firebase/database";
+import { getDatabase, ref, get, set, update, push, onValue, off, remove } from "firebase/database";
 import { sendAdam } from "./bots.config.mjs"
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -19,7 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-1
+
 
 export const getAllUsers = async () => {
     try {
@@ -110,7 +110,8 @@ export const onMessage = (from_user, to_user, method) => {
                     (async () => {
                         if (lastMessage.sent == true) {
                             console.log('API-TRIGERRED');
-                            const response = await sendAdam(history, lastMessage.text)
+                            let response = await sendAdam(history, lastMessage.text)
+                            response = response.replace(/\(.*?\)/g, '').trim()
                             sendMessage(to_user, from_user, response)
                             setTimeout(()=>{off(messageListRef, 'value', routine)}, 1000); // due to async or somwthing, onValue lister was stacking, so one is removed while other is added to make it constant, I don't understand it well but if i do I will it later
                             console.log(lastMessage);
@@ -127,3 +128,14 @@ export const onMessage = (from_user, to_user, method) => {
         console.log(error);
     }
 } 
+
+export const clearChat = async (from_user, to_user) => {
+    try {
+        const fromChatRef = ref(database, `users/${from_user}/chatList/${to_user}`)
+        const toChatRef = ref(database, `users/${to_user}/chatList/${from_user}`)
+        set(fromChatRef, "")
+        set(toChatRef, "")
+    } catch (error) {
+        console.log(error);
+    }
+}
